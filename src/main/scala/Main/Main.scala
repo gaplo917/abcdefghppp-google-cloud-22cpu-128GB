@@ -7,7 +7,7 @@ import scala.collection.parallel.ParSeq
   */
 object Main {
 
-  val BASE = 17
+  val BASE = 25
 
   val WIDTH = 4
   //  val WIDTH = 4
@@ -192,7 +192,7 @@ object Main {
 
     println(s"Total number of solutions = ${solutions.size}")
 
-    println(s"Total Time used to solve AB - CD = 111 - GH = EF (Base $BASE): ${System.currentTimeMillis() - start}ms")
+    println(s"Total Time used to solve (Base $BASE, Width $WIDTH): ${System.currentTimeMillis() - start}ms")
 
     solutions
       .take(50)
