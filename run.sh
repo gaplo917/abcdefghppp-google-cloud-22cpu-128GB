@@ -1,0 +1,1 @@
+ env  JAVA_OPTS="-server -Xms128G -Xmx128G -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70" sbt run
