@@ -7,9 +7,9 @@ import scala.collection.parallel.ParSeq
   */
 object Main {
 
-  val BASE = 25
+  val BASE = 10
 
-  val WIDTH = 6
+  val WIDTH = 2
   //  val WIDTH = 4
 
   val baseAnd1 = BASE + 1
@@ -187,22 +187,31 @@ object Main {
 
     println(s"Total Time used to solve (Base $BASE, Width $WIDTH): ${System.currentTimeMillis() - start}ms")
 
+    // too lazy for make it generic
     solutions
       .take(50)
       .map(xs => xs.map(intToChar))
       .foreach {
-        case xs@Vector(a,c,e,g,b,d,f,h) =>
-          // ab - cd = ef  ef + gh = 111
-          println(s"$a$b - $c$d = $e$f, $e$f + $g$h = 111")
-        case xs@Vector(a,e,i,m,b,f,j,n,c,g,k,o,d,h,l,p) =>
-          // abcd - efgh = ijkl , ijkl + mnop = 11111
-          println(s"$a$b$c$d - $e$f$g$h = $i$j$k$l, $i$j$k$l + $m$n$o$p = 11111")
-        case xs@Vector(a,f,k,p,b,g,l,q,c,h,m,r,d,i,n,s,e,j,o,t) =>
-          // abcde - fghij =  klmno,  klmno  + pqrst = 111111
-          println(s"$a$b$c$d$e - $f$g$h$i$j =  $k$l$m$n$o,  $k$l$m$n$o  + $p$q$r$s$t = 111111")
-        case xs@Vector(a,g,m,s,b,h,n,t,c,i,o,u,d,j,p,v,e,k,q,w,f,l,r,x) =>
+        case xs =>
+          val listWithIndex = xs.zipWithIndex
           // abcdef - ghijkl =  mnopqr,  mnopqr  + stuvwx = 111111
-          println(s"$a$b$c$d$e$f - $g$h$i$j$k$l =  $m$n$o$p$q$r,  $m$n$o$p$q$r  + $s$t$u$v$w$x = 1111111")
+          val abcdef = listWithIndex.collect {
+            case (x,i) if i % 4 == 0 => x
+          }.mkString("")
+          val ghijkl = listWithIndex.collect {
+            case (x,i) if i % 4 == 1 => x
+          }.mkString("")
+          val mnopqr = listWithIndex.collect {
+            case (x,i) if i % 4 == 2 => x
+          }.mkString("")
+          val stuvwx = listWithIndex.collect {
+            case (x,i) if i % 4 == 3 => x
+          }.mkString("")
+
+          // don't learn this, too lazy to use for-loop only lol
+          val yyyyyyy = List(1,1,1,1,1,1,1,1,1,1).take(WIDTH + 1).mkString("")
+
+          println(s"$abcdef - $ghijkl = $mnopqr,  $mnopqr + $stuvwx = $yyyyyyy")
       }
   }
 }
