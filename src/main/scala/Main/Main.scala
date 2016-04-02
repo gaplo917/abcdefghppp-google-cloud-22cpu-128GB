@@ -7,9 +7,9 @@ import scala.collection.parallel.ParSeq
   */
 object Main {
 
-  val BASE = 21
+  val BASE = 25
 
-  val WIDTH = 5
+  val WIDTH = 6
   //  val WIDTH = 4
 
   val baseAnd1 = BASE + 1
@@ -200,6 +200,9 @@ object Main {
         case xs@Vector(a,f,k,p,b,g,l,q,c,h,m,r,d,i,n,s,e,j,o,t) =>
           // abcde - fghij =  klmno,  klmno  + pqrst = 111111
           println(s"$a$b$c$d$e - $f$g$h$i$j =  $k$l$m$n$o,  $k$l$m$n$o  + $p$q$r$s$t = 111111")
+        case xs@Vector(a,g,m,s,b,g,n,t,c,i,o,u,d,j,p,v,e,k,q,w,f,l,r,x) =>
+          // abcdef - ghijkl =  mnopqr,  mnopqr  + stuvwx = 111111
+          println(s"$a$b$c$d$e$f - $g$h$i$j$k$l =  $m$n$o$p$q$r,  $m$n$o$p$q$r  + $s$t$u$v$w$x = 1111111")
       }
   }
 }
