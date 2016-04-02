@@ -7,9 +7,9 @@ import scala.collection.parallel.ParSeq
   */
 object Main {
 
-  val BASE = 25
+  val BASE = 21
 
-  val WIDTH = 4
+  val WIDTH = 5
   //  val WIDTH = 4
 
   val baseAnd1 = BASE + 1
@@ -74,19 +74,15 @@ object Main {
     )
 
   def mainRecur() = {
-    val a = func(
+    func(
       possibleToTry = possibleToTry,
       branchState = State_11,
       lending = 1
-    )
-
-    val c = func(
+    ) ++ func(
       possibleToTry = possibleToTry,
       branchState = State_11,
       lending = 0
     )
-
-    a ++ c
   }
 
   def func(possibleToTry: Vector[Int], branchState: BranchState = Initial, pos: Int = 1, lending:Int = 0, lastLending: Int = 0, possibleSolutions: ParSeq[Vector[Int]] = ParSeq()):  ParSeq[Vector[Int]] = {
@@ -111,10 +107,37 @@ object Main {
           // due to the fact that 1 - h > 0
           ParSeq()
 
-        case state@ State_11 =>
+        case State_11 if pos + 1 == WIDTH =>
+          // lending is not possible if the next position is the leading digit
+          func(
+            possibleToTry = possibleToTry,
+            branchState = State_10,
+            lending = 0,
+            lastLending = lending,
+            pos = pos + 1,
+            possibleSolutions = newPossibleSolutions
+          )
 
-          if(pos + 1 == WIDTH) {
-            // no landing is allows if that is already the leading digit
+        case State_11 =>
+          func(
+            possibleToTry = possibleToTry,
+            branchState = State_10,
+            lending = 0,
+            lastLending = lending,
+            pos = pos + 1,
+            possibleSolutions = newPossibleSolutions
+          ) ++
+            func(
+              possibleToTry = possibleToTry,
+              branchState = State_10,
+              lending = 1,
+              lastLending = lending,
+              pos = pos + 1,
+              possibleSolutions = newPossibleSolutions
+            )
+
+        case State_10 if pos + 1 == WIDTH  =>
+            // lending is not possible if the next position is the leading digit
             func(
               possibleToTry = possibleToTry,
               branchState = State_10,
@@ -123,54 +146,24 @@ object Main {
               pos = pos + 1,
               possibleSolutions = newPossibleSolutions
             )
-          } else {
+        case State_10  =>
+          func(
+            possibleToTry = possibleToTry,
+            branchState = State_10,
+            lending = 0,
+            lastLending = lending,
+            pos = pos + 1,
+            possibleSolutions = newPossibleSolutions
+          ) ++
             func(
               possibleToTry = possibleToTry,
               branchState = State_10,
-              lending = 0,
-              lastLending = lending,
-              pos = pos + 1,
-              possibleSolutions = newPossibleSolutions
-            ) ++
-              func(
-                possibleToTry = possibleToTry,
-                branchState = State_10,
-                lending = 1,
-                lastLending = lending,
-                pos = pos + 1,
-                possibleSolutions = newPossibleSolutions
-              )
-          }
-
-        case state@ State_10 =>
-          if(pos + 1 == WIDTH) {
-            // no landing is allows if that is already the leading digit
-            func(
-              possibleToTry = possibleToTry,
-              branchState = State_10,
-              lending = 0,
+              lending = 1,
               lastLending = lending,
               pos = pos + 1,
               possibleSolutions = newPossibleSolutions
             )
-          } else {
-            func(
-              possibleToTry = possibleToTry,
-              branchState = State_10,
-              lending = 0,
-              lastLending = lending,
-              pos = pos + 1,
-              possibleSolutions = newPossibleSolutions
-            ) ++
-              func(
-                possibleToTry = possibleToTry,
-                branchState = State_10,
-                lending = 1,
-                lastLending = lending,
-                pos = pos + 1,
-                possibleSolutions = newPossibleSolutions
-              )
-          }
+
 
       }
 
@@ -199,9 +192,14 @@ object Main {
       .map(xs => xs.map(intToChar))
       .foreach {
         case xs@Vector(a,c,e,g,b,d,f,h) =>
+          // ab - cd = ef  ef + gh = 111
           println(s"$a$b - $c$d = $e$f, $e$f + $g$h = 111")
         case xs@Vector(a,e,i,m,b,f,j,n,c,g,k,o,d,h,l,p) =>
+          // abcd - efgh = ijkl , ijkl + mnop = 11111
           println(s"$a$b$c$d - $e$f$g$h = $i$j$k$l, $i$j$k$l + $m$n$o$p = 11111")
+        case xs@Vector(a,f,k,p,b,g,l,q,c,h,m,r,d,i,n,s,e,j,o,t) =>
+          // abcde - fghij =  klmno,  klmno  + pqrst = 111111
+          println(s"$a$b$c$d$e - $f$g$h$i$j =  $k$l$m$n$o,  $k$l$m$n$o  + $p$q$r$s$t = 111111")
       }
   }
 }
