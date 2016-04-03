@@ -1,12 +1,10 @@
-package Main
+package abcdefghppp
 
 import akka.pattern.ask
 import akka.actor.{Props, Actor}
 import akka.event.Logging
-import akka._
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import scala.collection.generic.SeqFactory
 import scala.concurrent.duration._
 import scala.collection.parallel.ParSeq
 
@@ -22,10 +20,19 @@ class CountActor extends Actor {
   var solutions = List[List[Int]]()
 
   def receive = {
-    case c: Int => count += c
-    case saveSolution: CountActor.SaveSolution => if(solutions.size < 50) solutions = solutions :+ saveSolution.xs
-    case CountActor.AskSolutions => sender() ! CountActor.Solutions(count,solutions)
-    case _      => log.info("received unknown message")
+
+    case saveSolution: CountActor.SaveSolution =>
+      // count the solution
+      count += 1
+
+      if(solutions.size < 50){
+        solutions :+= saveSolution.xs
+      }
+
+    case CountActor.AskSolutions =>
+      sender() ! CountActor.Solutions(count,solutions)
+
+    case _ => log.info("received unknown message")
   }
 }
 object CountActor {
@@ -36,11 +43,16 @@ object CountActor {
 
 object Main {
 
-  val BASE = 27
+  val BASE = 25
 
   val WIDTH = 4
-  //  val WIDTH = 4
-  val system = ActorSystem("mySystem")
+  //  val WIDTH = 2
+
+
+  implicit val timeout: Timeout = 10 seconds
+
+  val system = ActorSystem("actorSystem")
+
   val countActor = system.actorOf(Props[CountActor], "countActor")
   system.scheduler.schedule(0 second, 10 seconds, new Runnable {
     override def run(): Unit = {
@@ -125,7 +137,6 @@ object Main {
     if(pos == WIDTH) {
       leadingDigitPossibleSolutionMap(branchState,lastLending).foreach { case ps@List(ps0,ps1,ps2,ps3) =>
         possibleSolutions.withFilter(xs => !xs.contains(ps0) && !xs.contains(ps1) && !xs.contains(ps2) && !xs.contains(ps3)).foreach { xs =>
-          countActor ! 1
           countActor ! CountActor.SaveSolution(ps ++ xs)
         }
       }
@@ -157,23 +168,23 @@ object Main {
             pos = pos + 1,
             possibleSolutions = newPossibleSolutions
           )
-            func(
-              branchState = State_10,
-              lending = 1,
-              lastLending = lending,
-              pos = pos + 1,
-              possibleSolutions = newPossibleSolutions
-            )
+          func(
+            branchState = State_10,
+            lending = 1,
+            lastLending = lending,
+            pos = pos + 1,
+            possibleSolutions = newPossibleSolutions
+          )
 
         case State_10 if pos + 1 == WIDTH  =>
-            // lending is not possible if the next position is the leading digit
-            func(
-              branchState = State_10,
-              lending = 0,
-              lastLending = lending,
-              pos = pos + 1,
-              possibleSolutions = newPossibleSolutions
-            )
+          // lending is not possible if the next position is the leading digit
+          func(
+            branchState = State_10,
+            lending = 0,
+            lastLending = lending,
+            pos = pos + 1,
+            possibleSolutions = newPossibleSolutions
+          )
         case State_10  =>
           func(
             branchState = State_10,
@@ -182,13 +193,13 @@ object Main {
             pos = pos + 1,
             possibleSolutions = newPossibleSolutions
           )
-            func(
-              branchState = State_10,
-              lending = 1,
-              lastLending = lending,
-              pos = pos + 1,
-              possibleSolutions = newPossibleSolutions
-            )
+          func(
+            branchState = State_10,
+            lending = 1,
+            lastLending = lending,
+            pos = pos + 1,
+            possibleSolutions = newPossibleSolutions
+          )
 
 
       }
@@ -209,13 +220,11 @@ object Main {
 
     val solutions = mainRecur()
 
-    implicit val timeout: Timeout = 10 seconds
-
+    // Ask the count Actor for the result
     (countActor ? CountActor.AskSolutions).mapTo[CountActor.Solutions].foreach { solutions =>
       println(s"Total number of solutions = ${solutions.count}")
       solutions.results.foreach(printEqu)
     }
-
 
     println(s"Total Time used to solve (Base $BASE, Width $WIDTH): ${System.currentTimeMillis() - start}ms")
   }
