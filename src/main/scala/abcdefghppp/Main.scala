@@ -1,5 +1,6 @@
 package abcdefghppp
 
+import abcdefghppp.actors.CountActor
 import akka.pattern.ask
 import akka.actor.{Props, Actor}
 import akka.event.Logging
@@ -13,50 +14,26 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * Created by Gaplo917 on 2/4/2016.
   */
 
-class CountActor extends Actor {
-  val log = Logging(context.system, this)
 
-  var count = 0
-  var solutions = List[List[Int]]()
-
-  def receive = {
-
-    case saveSolution: CountActor.SaveSolution =>
-      // count the solution
-      count += 1
-
-      if(solutions.size < 50){
-        solutions :+= saveSolution.xs
-      }
-
-    case CountActor.AskSolutions =>
-      sender() ! CountActor.Solutions(count,solutions)
-
-    case _ => log.info("received unknown message")
-  }
-}
-object CountActor {
-  case object AskSolutions
-  case class SaveSolution(xs: List[Int])
-  case class Solutions(count: Int, results: List[List[Int]])
-}
 
 object Main {
 
-  val BASE = 25
+  val BASE = 21
 
   val WIDTH = 4
   //  val WIDTH = 2
-
 
   implicit val timeout: Timeout = 10 seconds
 
   val system = ActorSystem("actorSystem")
 
   val countActor = system.actorOf(Props[CountActor], "countActor")
+
   system.scheduler.schedule(0 second, 10 seconds, new Runnable {
     override def run(): Unit = {
-      println(s"Total memory used ${(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)}MB")
+      val totalMemory = BigDecimal(Runtime.getRuntime().totalMemory() / (1024 * 1024 * 1024.0)).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+      val freeMemory = BigDecimal(Runtime.getRuntime().freeMemory() / (1024 * 1024 * 1024.0)).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+      println(s"[DEBUG] Total memory(${totalMemory.toString()})GB, Free memory:${freeMemory.toString()}GB")
     }
   })
 
@@ -201,7 +178,6 @@ object Main {
             possibleSolutions = newPossibleSolutions
           )
 
-
       }
 
     }
@@ -224,6 +200,9 @@ object Main {
     (countActor ? CountActor.AskSolutions).mapTo[CountActor.Solutions].foreach { solutions =>
       println(s"Total number of solutions = ${solutions.count}")
       solutions.results.foreach(printEqu)
+
+      // shutdown the actor system
+      system.terminate()
     }
 
     println(s"Total Time used to solve (Base $BASE, Width $WIDTH): ${System.currentTimeMillis() - start}ms")
