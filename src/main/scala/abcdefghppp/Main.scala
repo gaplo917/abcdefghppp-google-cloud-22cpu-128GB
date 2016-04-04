@@ -1,6 +1,7 @@
 package abcdefghppp
 
 import abcdefghppp.actors.CountActor
+import akka.actor.FSM.Failure
 import akka.pattern.ask
 import akka.actor.{Props, Actor}
 import akka.event.Logging
@@ -10,6 +11,8 @@ import scala.concurrent.duration._
 import scala.collection.parallel.ParSeq
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Success
+
 /**
   * Created by Gaplo917 on 2/4/2016.
   */
@@ -18,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Main {
 
-  val BASE = 21
+  val BASE = 25
 
   val WIDTH = 4
   //  val WIDTH = 2
@@ -39,8 +42,6 @@ object Main {
 
   val baseAnd1 = BASE + 1
   val possibleToTry = (0 until BASE).filter(x => x != 1).toList
-
-  def intToChar(x:Int) = if( x > 9) (x - 10 + 'a'.toInt).toChar else (x - 1 + '1'.toInt).toChar
 
   object BranchState extends Enumeration {
     type BranchState = Value
@@ -197,36 +198,15 @@ object Main {
     val solutions = mainRecur()
 
     // Ask the count Actor for the result
-    (countActor ? CountActor.AskSolutions).mapTo[CountActor.Solutions].foreach { solutions =>
-      println(s"Total number of solutions = ${solutions.count}")
-      solutions.results.foreach(printEqu)
+    (countActor ? CountActor.PrintSolutions).onSuccess{
+      case Success(_) =>
+        // shutdown the actor system
+        system.terminate()
+      case Failure(e) =>
 
-      // shutdown the actor system
-      system.terminate()
     }
 
     println(s"Total Time used to solve (Base $BASE, Width $WIDTH): ${System.currentTimeMillis() - start}ms")
   }
 
-  def printEqu(xs: List[Int]) = {
-    val listWithIndex = xs.map(intToChar).zipWithIndex
-    // abcdef - ghijkl =  mnopqr,  mnopqr  + stuvwx = 111111
-    val abcdef = listWithIndex.collect {
-      case (x,i) if i % 4 == 0 => x
-    }.mkString("")
-    val ghijkl = listWithIndex.collect {
-      case (x,i) if i % 4 == 1 => x
-    }.mkString("")
-    val mnopqr = listWithIndex.collect {
-      case (x,i) if i % 4 == 2 => x
-    }.mkString("")
-    val stuvwx = listWithIndex.collect {
-      case (x,i) if i % 4 == 3 => x
-    }.mkString("")
-
-    // don't learn this, too lazy to use for-loop only lol
-    val yyyyyyy = List(1,1,1,1,1,1,1,1,1,1).take(WIDTH + 1).mkString("")
-
-    println(s"$abcdef - $ghijkl = $mnopqr,  $mnopqr + $stuvwx = $yyyyyyy")
-  }
 }
